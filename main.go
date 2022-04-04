@@ -2,20 +2,23 @@ package main
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
 )
 
-type Author struct {
-	Id   int    `gorm:"column:id;primary_key" json:"id"`
+type Author struct { // こいつがテーブルになる
+	Id   int    `gorm:"column:id;primary_key" json:"id"` // タグにtableのnameとjsonにしたときのnameを指定
 	Name string `gorm:"column:name" json:"name"`
 }
 
 func Database() *gorm.DB {
-	dsn := "fvfmgq0050t5:pscale_pw_IuYFSVdP5bsQeFj7hoDVGDi-seDFM5M4lZEL6pQ9v6o@tcp(os6jsax9p8am.ap-northeast-2.psdb.cloud)/app-db?tls=true"
+	err := godotenv.Load(".env") // env 読み込み
+	dsn := os.Getenv("DSN")      // 変数を取得
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
 		/* テーブル名に関する options */
 		NamingStrategy: schema.NamingStrategy{
@@ -28,10 +31,6 @@ func Database() *gorm.DB {
 	}
 	return db
 }
-
-// var author []Author
-
-// var authors []Author
 
 func main() {
 	router := gin.Default()
@@ -60,12 +59,18 @@ func main() {
 
 	/* 新規作成 */
 	router.POST("/test", func(c *gin.Context) {
-		newAuthor := Author{
-			Name: "test name",
-		}
-		result := db.Create(&newAuthor)
-		fmt.Println(result)
-		c.JSON(200, result)
+		/* データを取得 */
+		// var author Author
+		author := Author{}
+		c.BindJSON(&author)
+		fmt.Println(author)
+
+		// newAuthor := Author{
+		// 	Name: "test name",
+		// }
+		// result := db.Create(&newAuthor)
+		// fmt.Println(result)
+		// c.JSON(200, result)
 	})
 
 	router.Run()
